@@ -192,6 +192,32 @@ body{min-height:100vh;background:
 .drop-zone .empty.zone-empty{border-color:rgba(95,214,255,.28);color:#6fb8d8}
 .pill.aktiv{background:rgba(95,214,255,.16);color:#7fe6ff;margin-right:2px}
 .todo.st-aktiv{border-left-color:#7fe6ff;background:linear-gradient(180deg,rgba(95,214,255,.05),var(--panel2))}
+/* ============ HANDY / MOBIL (04.09.2026): cleanes, kompaktes App-Layout ============ */
+@media(max-width:640px){
+  /* Safe-Area (Notch/Home-Indikator) + engeres Padding */
+  .wrap{padding:12px 12px calc(60px + env(safe-area-inset-bottom))}
+  .topbar{gap:8px 12px;padding:calc(8px + env(safe-area-inset-top)) 2px 12px}
+  .brand{font-size:11px;letter-spacing:.14em}
+  .clock .t{font-size:15px}.clock .d{font-size:9px}
+  /* Nav: kompakte Tab-Zeile statt sperriger Blöcke */
+  .nav{order:3;width:100%;gap:3px;margin-top:2px}
+  .nav button{font-size:10px;padding:6px 9px;letter-spacing:.06em}
+  /* Deko raus: cleaner Blick + spart GPU/Akku (und Hitze) am Handy */
+  .hud-bg,.hud-ring,.fx-scan,.nexus-panel{display:none!important}
+  /* Panels + Kopfzeilen enger, Kopf gestapelt statt gequetscht */
+  .panel{padding:15px 14px;border-radius:13px}
+  .grid{gap:11px;margin-top:12px}
+  .phead{flex-direction:column;align-items:flex-start;gap:3px}
+  .phead .pmeta{font-size:9px}
+  /* Kalender: 7 schmale Spalten (minmax(0,1fr) verhindert den Grid-Blowout) */
+  .cal{grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
+  .cal .dow{font-size:7.5px;padding-bottom:2px}
+  .cal .day{min-height:46px;padding:3px;border-radius:6px}
+  .cal .day .n{font-size:10px}
+  .cal .ev{font-size:7px;padding:1px 3px;margin-top:2px}
+  /* Detail-Editor-Reihen sauber stapeln */
+  .td-row .inp{flex:1 1 100%}
+}
 .col-drop{outline:2px dashed rgba(95,214,255,.5);outline-offset:4px;border-radius:10px}
 .todo.dragging{opacity:.4}
 .todo.done-row{opacity:.7}
