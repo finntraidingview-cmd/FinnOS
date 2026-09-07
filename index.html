@@ -181,6 +181,17 @@ body{min-height:100vh;background:
 .pm-sw.on{opacity:1;border-color:rgba(255,255,255,.85)}
 .day .ev.todo-ev{border-left-width:2px;opacity:.9}
 .evitem.td .when.td-when{color:var(--green)}
+/* ---- Status-Zonen: In Arbeit / Offen mit Drag&Drop (04.09.2026) ---- */
+.todo-zone.active-zone{border-color:rgba(95,214,255,.35)}
+.zone-head{display:flex;align-items:baseline;justify-content:space-between;gap:10px;margin-bottom:12px;flex-wrap:wrap}
+.zone-head .zh-title{font-family:var(--mono);font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink2)}
+.active-zone .zone-head .zh-title{color:#7fe6ff}
+.zone-head .zh-hint{font-family:var(--mono);font-size:9.5px;color:var(--dim2);letter-spacing:.04em}
+.drop-zone{min-height:16px;border-radius:10px;transition:background .15s,outline-color .15s}
+.drop-zone.zone-hot{background:rgba(95,214,255,.07);outline:1px dashed rgba(95,214,255,.45);outline-offset:4px}
+.drop-zone .empty.zone-empty{border-color:rgba(95,214,255,.28);color:#6fb8d8}
+.pill.aktiv{background:rgba(95,214,255,.16);color:#7fe6ff;margin-right:2px}
+.todo.st-aktiv{border-left-color:#7fe6ff;background:linear-gradient(180deg,rgba(95,214,255,.05),var(--panel2))}
 .col-drop{outline:2px dashed rgba(95,214,255,.5);outline-offset:4px;border-radius:10px}
 .todo.dragging{opacity:.4}
 .todo.done-row{opacity:.7}
@@ -1093,7 +1104,14 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
     </div>
     <div class="proj-bar" id="proj-bar"></div>
     <div id="proj-manage" style="display:none"></div>
-    <div class="panel" style="margin-top:14px"><div id="todo-list"></div></div>
+    <div class="panel todo-zone active-zone" style="margin-top:14px">
+      <div class="zone-head"><span class="zh-title">⚡ In Arbeit</span><span class="zh-hint">To-Dos, die du gerade angehst — einfach hierher ziehen</span></div>
+      <div id="todo-active" class="drop-zone"></div>
+    </div>
+    <div class="panel" style="margin-top:14px">
+      <div class="zone-head"><span class="zh-title">Offen</span></div>
+      <div id="todo-open" class="drop-zone"></div>
+    </div>
     <div class="panel" style="margin-top:14px">
       <div class="phead"><div class="plabel"><b>T2</b> // ERLEDIGT</div><div class="pmeta"><span id="done-count">0</span> abgehakt · <button class="btn ghost" id="done-clear" type="button">endgültig löschen</button></div></div>
       <div id="col-done"></div>
@@ -1681,7 +1699,8 @@ var projects=load('projects',[]);
 var PPAL=['#5f9ad6','#5fd39a','#e7a24a','#b794e6','#56b6c2','#e0564a','#d9b45a','#e06aa8'];
 /* Migration: neue Felder anlegen, ohne Bestandszeilen zu verlieren */
 todos.forEach(function(t){ if(!t.scope)t.scope='heute'; if(typeof t.done!=='boolean')t.done=false;
-  if(!('project' in t))t.project=null; if(!('note' in t))t.note=''; if(!('due' in t))t.due=''; });
+  if(!('project' in t))t.project=null; if(!('note' in t))t.note=''; if(!('due' in t))t.due='';
+  if(!('status' in t))t.status='offen'; });
 var pickColor='green', scopeFilter='alle', projFilter='alle', dragId=null, manageOpen=false;
 function byId(id){return todos.filter(function(x){return x.id===id;})[0];}
 function projById(id){return projects.filter(function(p){return p.id===id;})[0];}
@@ -1752,7 +1771,11 @@ function cycleScope(id){var order=['heute','woche','monat'];var t=byId(id);if(!t
 function todoRefresh(){renderTodos();renderHome();renderProjects();renderCalendar();renderUpcoming();}
 function completeTodo(id){var t=byId(id);if(!t)return;
   var e=document.querySelector('[data-todo="'+id+'"]');if(e)e.classList.add('removing');
-  setTimeout(function(){t.done=true;t.doneAt=Date.now();save('todos',todos);todoRefresh();},220);}
+  setTimeout(function(){t.done=true;t.doneAt=Date.now();t.status='offen';save('todos',todos);todoRefresh();},220);}
+function toggleStatus(id){var t=byId(id);if(!t)return;
+  t.status=(t.status==='aktiv'?'offen':'aktiv');
+  if(editingTodo===id)editingTodo=null;
+  save('todos',todos);renderTodos();renderHome();renderProjects();}
 function reopenTodo(id){var t=byId(id);if(!t)return;t.done=false;delete t.doneAt;save('todos',todos);todoRefresh();}
 function deleteTodo(id){todos=todos.filter(function(x){return x.id!==id;});save('todos',todos);todoRefresh();}
 function clearDone(){todos=todos.filter(function(x){return !x.done;});save('todos',todos);todoRefresh();}
@@ -1765,7 +1788,9 @@ function dueLabel(due){var d=dueDate(due);if(!d)return due;var t0=new Date();t0.
 function isOverdue(due){var d=dueDate(due);if(!d)return false;var t0=new Date();t0.setHours(0,0,0,0);return d<t0;}
 function todoBadges(t){
   var lbl={orange:'Hoch',green:'Mittel',blue:'Niedrig',pending:'…'}[t.color]||'…';
-  var h='<span class="pill '+t.color+'" onclick="event.stopPropagation();LOS.cycleColor(\''+t.id+'\')">'+lbl+'</span>';
+  var h='';
+  if(t.status==='aktiv')h+='<span class="pill aktiv">⚡ Aktiv</span>';
+  h+='<span class="pill '+t.color+'" onclick="event.stopPropagation();LOS.cycleColor(\''+t.id+'\')">'+lbl+'</span>';
   if(t.project)h+='<span class="proj-badge"><span class="pb-dot" style="background:'+projColor(t.project)+'"></span>'+escapeHtml(projName(t.project))+'</span>';
   if(t.due)h+='<span class="pill due'+(isOverdue(t.due)?' overdue':'')+'">📅 '+dueLabel(t.due)+'</span>';
   if(t.note&&t.note.trim())h+='<span class="note-ic" title="Notiz vorhanden">📝</span>';
@@ -1782,11 +1807,11 @@ function todoHTML(t,editable){
         '<input class="inp edit-due" type="date" value="'+escapeHtml(t.due||'')+'" title="Fälligkeit → Kalender">'+
       '</div>'+
       '<div class="td-row" style="justify-content:space-between">'+
-        '<button class="btn ghost" style="color:var(--red)" onclick="LOS.deleteTodo(\''+t.id+'\')">Löschen</button>'+
+        '<span><button class="btn ghost" onclick="LOS.toggleStatus(\''+t.id+'\')">'+(t.status==='aktiv'?'↩ Zurück zu Offen':'⚡ Angehen')+'</button> <button class="btn ghost" style="color:var(--red)" onclick="LOS.deleteTodo(\''+t.id+'\')">Löschen</button></span>'+
         '<span><button class="btn" onclick="LOS.saveTodoDetail(\''+t.id+'\',this)">Speichern</button> <button class="btn ghost" onclick="LOS.cancelEdit()">✕</button></span>'+
       '</div></div></div>';
   }
-  return '<div class="todo c-'+t.color+'" data-todo="'+t.id+'" draggable="true" ondragstart="LOS.dragStart(event,\''+t.id+'\')" ondragend="LOS.dragEnd(event)"><div class="chk '+t.color+'" onclick="LOS.completeTodo(\''+t.id+'\')"></div>'+
+  return '<div class="todo c-'+t.color+(t.status==='aktiv'?' st-aktiv':'')+'" data-todo="'+t.id+'" draggable="true" ondragstart="LOS.dragStart(event,\''+t.id+'\')" ondragend="LOS.dragEnd(event)"><div class="chk '+t.color+'" onclick="LOS.completeTodo(\''+t.id+'\')"></div>'+
     '<div class="tx"'+(editable?' onclick="LOS.editTodo(\''+t.id+'\')"':'')+'>'+escapeHtml(t.text)+'<span class="tbadges">'+todoBadges(t)+'</span></div>'+
     '<button class="del" title="Bearbeiten"'+(editable?' onclick="LOS.editTodo(\''+t.id+'\')"':'')+'>⋯</button></div>';
 }
@@ -1812,8 +1837,24 @@ function dragStart(ev,id){dragId=id;
   try{ev.dataTransfer.setData('text/plain',id);ev.dataTransfer.effectAllowed='move';}catch(e){}
   var e=ev.target.closest('.todo');if(e)e.classList.add('dragging');}
 function dragEnd(ev){var e=ev.target.closest('.todo');if(e)e.classList.remove('dragging');
-  var hl=document.querySelectorAll('.col-drop');for(var i=0;i<hl.length;i++)hl[i].classList.remove('col-drop');}
+  var hl=document.querySelectorAll('.col-drop, .zone-hot');for(var i=0;i<hl.length;i++)hl[i].classList.remove('col-drop','zone-hot');}
+function initStatusDnD(){
+  /* Zwei Status-Zonen: ein To-Do in „In Arbeit" ziehen setzt status='aktiv',
+     zurück in „Offen" setzt 'offen'. So sieht Finn die aktuelle Lage (04.09.2026). */
+  [['todo-active','aktiv'],['todo-open','offen']].forEach(function(pair){
+    var box=el(pair[0]); if(!box)return;
+    box.addEventListener('dragover',function(ev){ev.preventDefault();try{ev.dataTransfer.dropEffect='move';}catch(e){}box.classList.add('zone-hot');});
+    box.addEventListener('dragleave',function(ev){if(ev.target===box)box.classList.remove('zone-hot');});
+    box.addEventListener('drop',function(ev){
+      ev.preventDefault();box.classList.remove('zone-hot');
+      var id=dragId||(function(){try{return ev.dataTransfer.getData('text/plain');}catch(e){return null;}})();
+      var t=byId(id); if(!t)return;
+      t.status=pair[1]; dragId=null; save('todos',todos); renderTodos(); renderHome(); renderProjects();
+    });
+  });
+}
 function initTodoDnD(){
+  initStatusDnD();
   ['col-orange','col-green','col-blue','home-col-orange','home-col-green','home-col-blue'].forEach(function(cid){
     var box=el(cid); if(!box)return;
     var color=cid.split('-').pop();
@@ -1841,13 +1882,15 @@ function todoSort(a,b){var o={orange:0,green:1,pending:1,blue:2};
   if(!!a.due!==!!b.due)return a.due?-1:1;
   if(a.due&&b.due&&a.due!==b.due)return a.due<b.due?-1:1;
   return (b.created||0)-(a.created||0);}
-function renderTodoList(){
-  var box=el('todo-list'); if(!box)return;
-  var list=todos.filter(function(t){return !t.done&&(projFilter==='alle'||(projFilter===''?!t.project:t.project===projFilter));});
-  list.sort(todoSort);
-  box.innerHTML=list.length?list.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty">Keine offenen To-Dos'+(projFilter==='alle'?'.':' in diesem Projekt.')+'</div>';
+function renderTodoZones(){
+  var af=el('todo-active'), of=el('todo-open'); if(!af||!of)return;
+  function inFilter(t){return !t.done&&(projFilter==='alle'||(projFilter===''?!t.project:t.project===projFilter));}
+  var aktiv=todos.filter(function(t){return inFilter(t)&&t.status==='aktiv';}).sort(todoSort);
+  var offen=todos.filter(function(t){return inFilter(t)&&t.status!=='aktiv';}).sort(todoSort);
+  af.innerHTML=aktiv.length?aktiv.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty zone-empty">Zieh ein To-Do hierher, das du gerade angehst ⚡</div>';
+  of.innerHTML=offen.length?offen.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty">Nichts offen'+(projFilter==='alle'?'.':' in diesem Projekt.')+'</div>';
 }
-function renderTodos(){renderTodoList();renderTodoCols('home-col-',false);renderDone();}
+function renderTodos(){renderTodoZones();renderTodoCols('home-col-',false);renderDone();}
 function focusVisible(sel){var els=document.querySelectorAll(sel);for(var i=0;i<els.length;i++){var e=els[i];if(e.offsetParent!==null){e.focus();try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}break;}}}
 function editTodo(id){editingTodo=id;renderTodos();focusVisible('.edit-tx');}
 function saveTodoDetail(id,btn){
@@ -2606,7 +2649,8 @@ window.LOS={completeTodo:completeTodo,cycleColor:cycleColor,cycleScope:cycleScop
   renameHabit:renameHabit,delVision:delVision,delEvent:delEvent,
   toggleGoal:toggleGoal,delGoal:delGoal,delManualIncome:delManualIncome,editTodo:editTodo,saveTodoDetail:saveTodoDetail,
   cancelEdit:cancelEdit,editEvent:editEvent,saveEvent:saveEvent,cancelEventEdit:cancelEventEdit,dayClick:dayClick,
-  openTodo:openTodo,renameProject:renameProject,recolorProject:recolorProject,delProject:delProject};
+  openTodo:openTodo,renameProject:renameProject,recolorProject:recolorProject,delProject:delProject,
+  toggleStatus:toggleStatus};
 
 tick(); setInterval(tick,20000);
 renderFinance(); renderProjects(); renderTodos(); renderHabits(); renderCalendar(); renderUpcoming(); renderGoals();
