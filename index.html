@@ -1122,11 +1122,12 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
     <div class="panel a-todo">
       <div class="phead"><div class="plabel"><b>T1</b> // NEUES TO-DO</div><div class="pmeta">Orange = hoch · Grün = mittel · Blau = niedrig</div></div>
       <div class="row"><input class="inp" id="todo-input" placeholder="To-Do eintippen — z. B. „Steuerunterlagen sortieren“ …" style="flex:1;min-width:180px">
-        <select class="inp" id="todo-project" style="flex:0 0 150px" title="Projekt / Kategorie"><option value="">Ohne Projekt</option></select>
+        <select class="inp" id="todo-project" style="flex:0 0 140px" title="Projekt / Kategorie"><option value="">Ohne Projekt</option></select>
+        <select class="inp" id="todo-scope" style="flex:0 0 110px" title="Zeitebene"><option value="heute">Heute</option><option value="woche">Diese Woche</option><option value="monat">Diesen Monat</option></select>
         <div class="prio-pick" id="prio-pick" title="Priorität wählen"><span class="pdot orange" data-c="orange" title="Hoch"></span><span class="pdot green sel" data-c="green" title="Mittel"></span><span class="pdot blue" data-c="blue" title="Niedrig"></span></div>
-        <input class="inp" id="todo-due" type="date" style="flex:0 0 150px" title="Fälligkeitsdatum (optional) — erscheint im Kalender">
+        <input class="inp" id="todo-due" type="date" style="flex:0 0 140px" title="Datum (optional) — nur für konkrete Termine, landet im Kalender">
         <button class="btn" id="todo-add">Hinzufügen</button></div>
-      <div class="note">Wähle Projekt + Priorität (Farbpunkt), optional ein Datum (landet im Kalender). Klick auf ein To-Do öffnet Notiz &amp; Details. Filter dich über die Projekt-Leiste unten.</div>
+      <div class="note">Projekt + Zeitebene (Heute/Woche/Monat) + Priorität (Farbpunkt). Ein Datum ist <b>optional</b> — nur für konkrete Termine (landet dann im Kalender). Klick auf ein To-Do öffnet Notiz &amp; Details.</div>
     </div>
     <div class="proj-bar" id="proj-bar"></div>
     <div id="proj-manage" style="display:none"></div>
@@ -1784,8 +1785,9 @@ function addTodo(text,preColor){
   text=String(text||'').trim(); if(!text)return;
   var valid=['orange','green','blue'].indexOf(preColor)>=0;
   var pr=el('todo-project')?el('todo-project').value:'';
+  var sc=el('todo-scope')?el('todo-scope').value:'heute';
   var due=el('todo-due')?el('todo-due').value:'';
-  var t={id:uid(),text:text,color:valid?preColor:pickColor,scope:'heute',project:pr||null,note:'',due:due||'',done:false,created:Date.now()};
+  var t={id:uid(),text:text,color:valid?preColor:pickColor,scope:sc,project:pr||null,note:'',due:due||'',done:false,created:Date.now()};
   todos.unshift(t);save('todos',todos);
   if(el('todo-due'))el('todo-due').value='';
   renderTodos();renderHome();renderCalendar();renderUpcoming();
@@ -1817,6 +1819,7 @@ function todoBadges(t){
   var h='';
   if(t.status==='aktiv')h+='<span class="pill aktiv">⚡ Aktiv</span>';
   h+='<span class="pill '+t.color+'" onclick="event.stopPropagation();LOS.cycleColor(\''+t.id+'\')">'+lbl+'</span>';
+  h+='<span class="pill scope" title="Zeitebene wechseln" onclick="event.stopPropagation();LOS.cycleScope(\''+t.id+'\')">'+(SCOPE_LBL[t.scope]||'Heute')+'</span>';
   if(t.project)h+='<span class="proj-badge"><span class="pb-dot" style="background:'+projColor(t.project)+'"></span>'+escapeHtml(projName(t.project))+'</span>';
   if(t.due)h+='<span class="pill due'+(isOverdue(t.due)?' overdue':'')+'">📅 '+dueLabel(t.due)+'</span>';
   if(t.note&&t.note.trim())h+='<span class="note-ic" title="Notiz vorhanden">📝</span>';
@@ -1829,8 +1832,9 @@ function todoHTML(t,editable){
       '<textarea class="inp edit-note" placeholder="Notiz … Details, Links, Kontext">'+escapeHtml(t.note||'')+'</textarea>'+
       '<div class="td-row">'+
         '<select class="inp edit-proj">'+projOptionsHTML(t.project)+'</select>'+
+        '<select class="inp edit-scope"><option value="heute"'+(t.scope==='heute'?' selected':'')+'>Heute</option><option value="woche"'+(t.scope==='woche'?' selected':'')+'>Diese Woche</option><option value="monat"'+(t.scope==='monat'?' selected':'')+'>Diesen Monat</option></select>'+
         '<select class="inp edit-col"><option value="orange"'+(t.color==='orange'?' selected':'')+'>Hoch</option><option value="green"'+(t.color==='green'?' selected':'')+'>Mittel</option><option value="blue"'+(t.color==='blue'?' selected':'')+'>Niedrig</option></select>'+
-        '<input class="inp edit-due" type="date" value="'+escapeHtml(t.due||'')+'" title="Fälligkeit → Kalender">'+
+        '<input class="inp edit-due" type="date" value="'+escapeHtml(t.due||'')+'" title="Datum (optional) → Kalender">'+
       '</div>'+
       '<div class="td-row" style="justify-content:space-between">'+
         '<span><button class="btn ghost" onclick="LOS.toggleStatus(\''+t.id+'\')">'+(t.status==='aktiv'?'↩ Zurück zu Offen':'⚡ Angehen')+'</button> <button class="btn ghost" style="color:var(--red)" onclick="LOS.deleteTodo(\''+t.id+'\')">Löschen</button></span>'+
@@ -1922,10 +1926,11 @@ function editTodo(id){editingTodo=id;renderTodos();focusVisible('.edit-tx');}
 function saveTodoDetail(id,btn){
   var t=byId(id); if(!t){editingTodo=null;renderTodos();return;}
   var row=btn.closest('.todo');
-  var tx=row.querySelector('.edit-tx'),nt=row.querySelector('.edit-note'),pr=row.querySelector('.edit-proj'),col=row.querySelector('.edit-col'),du=row.querySelector('.edit-due');
+  var tx=row.querySelector('.edit-tx'),nt=row.querySelector('.edit-note'),pr=row.querySelector('.edit-proj'),sc=row.querySelector('.edit-scope'),col=row.querySelector('.edit-col'),du=row.querySelector('.edit-due');
   if(tx&&tx.value.trim())t.text=tx.value.trim();
   if(nt)t.note=nt.value;
   if(pr)t.project=pr.value||null;
+  if(sc)t.scope=sc.value;
   if(col)t.color=col.value;
   if(du)t.due=du.value||'';
   editingTodo=null;save('todos',todos);renderTodos();renderHome();renderProjects();renderCalendar();renderUpcoming();
