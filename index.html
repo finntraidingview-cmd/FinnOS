@@ -155,6 +155,32 @@ body{min-height:100vh;background:
 .pdot.orange{background:var(--orange)}.pdot.green{background:var(--green)}.pdot.blue{background:var(--blue)}
 .pdot.sel{opacity:1;border-color:rgba(255,255,255,.85);box-shadow:0 0 8px rgba(255,255,255,.25)}
 .todo .pill.scope{background:rgba(255,255,255,.07);color:var(--ink2);margin-left:6px}
+/* ---- Projekte / To-Do v2 (04.09.2026): eigene Kategorien, Notizen, Faelligkeit ---- */
+.proj-bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px}
+.proj-chip{font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink2);background:var(--panel2);border:1px solid var(--line);border-radius:20px;padding:6px 13px;cursor:pointer;display:inline-flex;align-items:center;gap:7px;transition:.15s;white-space:nowrap}
+.proj-chip .pc-dot{width:8px;height:8px;border-radius:50%;flex:none}
+.proj-chip:hover{border-color:var(--ink2)}
+.proj-chip.active{border-color:transparent;color:#0a0e13;font-weight:700}
+.proj-chip.add,.proj-chip.manage{color:var(--dim);border-style:dashed}
+.todo .tbadges{display:inline}
+.todo .proj-badge{display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase;padding:3px 8px;border-radius:20px;margin-top:5px;margin-left:6px;background:rgba(255,255,255,.05);color:var(--ink2);white-space:nowrap}
+.todo .proj-badge .pb-dot{width:7px;height:7px;border-radius:50%;flex:none}
+.todo .pill.due{background:rgba(95,154,214,.14);color:var(--blue);margin-left:6px}
+.todo .pill.due.overdue{background:rgba(224,86,74,.16);color:var(--red)}
+.todo .note-ic{margin-left:6px;font-size:11px;opacity:.55}
+.todo-detail{display:flex;flex-direction:column;gap:9px;width:100%}
+.todo-detail textarea.inp{min-height:58px;resize:vertical;font-family:var(--sans);line-height:1.5}
+.td-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+.td-row .inp{flex:1;min-width:120px}
+#proj-manage{margin-top:12px;border:1px dashed var(--line);border-radius:12px;padding:14px}
+#proj-manage .pm-head{font-family:var(--mono);font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--dim);margin-bottom:10px}
+.pm-row{display:flex;gap:10px;align-items:center;margin-bottom:9px}
+.pm-row .inp{flex:0 0 200px}
+.pm-sws{display:flex;gap:5px;flex:1;flex-wrap:wrap}
+.pm-sw{width:18px;height:18px;border-radius:50%;cursor:pointer;opacity:.5;border:2px solid transparent;transition:.15s}
+.pm-sw.on{opacity:1;border-color:rgba(255,255,255,.85)}
+.day .ev.todo-ev{border-left-width:2px;opacity:.9}
+.evitem.td .when.td-when{color:var(--green)}
 .col-drop{outline:2px dashed rgba(95,214,255,.5);outline-offset:4px;border-radius:10px}
 .todo.dragging{opacity:.4}
 .todo.done-row{opacity:.7}
@@ -1058,18 +1084,16 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
   <section class="tab" id="tab-todos">
     <div class="panel a-todo">
       <div class="phead"><div class="plabel"><b>T1</b> // NEUES TO-DO</div><div class="pmeta">Orange = hoch · Grün = mittel · Blau = niedrig</div></div>
-      <div class="row"><input class="inp" id="todo-input" placeholder="To-Do eintippen — z. B. „Steuerunterlagen bis Freitag sortieren“ …">
+      <div class="row"><input class="inp" id="todo-input" placeholder="To-Do eintippen — z. B. „Steuerunterlagen sortieren“ …" style="flex:1;min-width:180px">
+        <select class="inp" id="todo-project" style="flex:0 0 150px" title="Projekt / Kategorie"><option value="">Ohne Projekt</option></select>
         <div class="prio-pick" id="prio-pick" title="Priorität wählen"><span class="pdot orange" data-c="orange" title="Hoch"></span><span class="pdot green sel" data-c="green" title="Mittel"></span><span class="pdot blue" data-c="blue" title="Niedrig"></span></div>
-        <select class="inp" id="todo-scope" style="flex:0 0 110px"><option value="heute">Heute</option><option value="woche">Woche</option><option value="monat">Monat</option></select>
+        <input class="inp" id="todo-due" type="date" style="flex:0 0 150px" title="Fälligkeitsdatum (optional) — erscheint im Kalender">
         <button class="btn" id="todo-add">Hinzufügen</button></div>
-      <div class="note">Farbpunkt = Priorität selbst wählen, daneben die Ebene (Heute/Woche/Monat). To-Dos lassen sich mit der Maus zwischen den Spalten ziehen; Abgehakte sammeln sich unten im Erledigt-Bereich.</div>
+      <div class="note">Wähle Projekt + Priorität (Farbpunkt), optional ein Datum (landet im Kalender). Klick auf ein To-Do öffnet Notiz &amp; Details. Filter dich über die Projekt-Leiste unten.</div>
     </div>
-    <div class="seg" id="scope-filter" style="margin-top:14px"><button data-s="alle" class="active">Alle</button><button data-s="heute">Heute</button><button data-s="woche">Woche</button><button data-s="monat">Monat</button></div>
-    <div class="grid cols-3" style="margin-top:14px">
-      <div class="panel"><div class="colgroup-label"><span class="d" style="background:var(--orange)"></span>Orange · Hohe Priorität</div><div id="col-orange"></div></div>
-      <div class="panel"><div class="colgroup-label"><span class="d" style="background:var(--green)"></span>Grün · Mittel</div><div id="col-green"></div></div>
-      <div class="panel"><div class="colgroup-label"><span class="d" style="background:var(--blue)"></span>Blau · Niedrig</div><div id="col-blue"></div></div>
-    </div>
+    <div class="proj-bar" id="proj-bar"></div>
+    <div id="proj-manage" style="display:none"></div>
+    <div class="panel" style="margin-top:14px"><div id="todo-list"></div></div>
     <div class="panel" style="margin-top:14px">
       <div class="phead"><div class="plabel"><b>T2</b> // ERLEDIGT</div><div class="pmeta"><span id="done-count">0</span> abgehakt · <button class="btn ghost" id="done-clear" type="button">endgültig löschen</button></div></div>
       <div id="col-done"></div>
@@ -1652,37 +1676,119 @@ function classify(text){
   }catch(e){}
   return Promise.resolve(heuristicColor(text));
 }
-todos.forEach(function(t){ if(!t.scope)t.scope='heute'; if(typeof t.done!=='boolean')t.done=false; });
-var pickColor='green', scopeFilter='alle', dragId=null;
+/* ===== Projekte (04.09.2026): eigene Kategorien, von Finn selbst verwaltet ===== */
+var projects=load('projects',[]);
+var PPAL=['#5f9ad6','#5fd39a','#e7a24a','#b794e6','#56b6c2','#e0564a','#d9b45a','#e06aa8'];
+/* Migration: neue Felder anlegen, ohne Bestandszeilen zu verlieren */
+todos.forEach(function(t){ if(!t.scope)t.scope='heute'; if(typeof t.done!=='boolean')t.done=false;
+  if(!('project' in t))t.project=null; if(!('note' in t))t.note=''; if(!('due' in t))t.due=''; });
+var pickColor='green', scopeFilter='alle', projFilter='alle', dragId=null, manageOpen=false;
 function byId(id){return todos.filter(function(x){return x.id===id;})[0];}
+function projById(id){return projects.filter(function(p){return p.id===id;})[0];}
+function projName(id){var p=projById(id);return p?p.name:'';}
+function projColor(id){var p=projById(id);return p?p.color:'#5f9ad6';}
+function saveProjects(){save('projects',projects);}
+function projOptionsHTML(sel){
+  var o='<option value="">Ohne Projekt</option>';
+  projects.forEach(function(p){o+='<option value="'+p.id+'"'+(sel===p.id?' selected':'')+'>'+escapeHtml(p.name)+'</option>';});
+  return o;
+}
+function addProject(){
+  var name=prompt('Neues Projekt / Kategorie:'); if(name===null)return;
+  name=name.trim(); if(!name)return;
+  var p={id:uid(),name:name,color:PPAL[projects.length%PPAL.length]};
+  projects.push(p); saveProjects(); projFilter=p.id; renderProjects(); renderTodos();
+}
+function renameProject(id,val){var p=projById(id);if(!p)return;val=String(val||'').trim();if(val){p.name=val;saveProjects();renderProjects();renderTodos();}}
+function recolorProject(id,col){var p=projById(id);if(!p)return;p.color=col;saveProjects();renderProjects();renderTodos();renderCalendar();renderUpcoming();}
+function delProject(id){var p=projById(id);if(!p)return;
+  if(!confirm('Projekt „'+p.name+'“ löschen? Die To-Dos bleiben erhalten (werden „Ohne Projekt“).'))return;
+  todos.forEach(function(t){if(t.project===id)t.project=null;});
+  projects=projects.filter(function(x){return x.id!==id;}); saveProjects(); save('todos',todos);
+  if(projFilter===id)projFilter='alle'; renderProjects(); renderTodos(); renderCalendar(); renderUpcoming();
+}
+function setProjectFilter(f){projFilter=f;renderProjects();renderTodos();}
+function toggleManage(){manageOpen=!manageOpen;renderProjectManage();}
+function renderProjectChips(){
+  var bar=el('proj-bar'); if(!bar)return;
+  var open=todos.filter(function(t){return !t.done;});
+  function cnt(f){return open.filter(function(t){return f==='alle'?true:(f===''?!t.project:t.project===f);}).length;}
+  var h='<button class="proj-chip'+(projFilter==='alle'?' active':'')+'" data-pf="alle"'+(projFilter==='alle'?' style="background:var(--ink2)"':'')+'>Alle <span style="opacity:.6">'+cnt('alle')+'</span></button>';
+  projects.forEach(function(p){var on=projFilter===p.id;
+    h+='<button class="proj-chip'+(on?' active':'')+'" data-pf="'+p.id+'"'+(on?' style="background:'+p.color+'"':'')+'><span class="pc-dot" style="background:'+p.color+'"></span>'+escapeHtml(p.name)+' <span style="opacity:.6">'+cnt(p.id)+'</span></button>';
+  });
+  var noneN=cnt('');
+  if(noneN)h+='<button class="proj-chip'+(projFilter===''?' active':'')+'" data-pf=""'+(projFilter===''?' style="background:var(--dim)"':'')+'>Ohne <span style="opacity:.6">'+noneN+'</span></button>';
+  h+='<button class="proj-chip add" data-pf="__add">＋ Projekt</button>';
+  if(projects.length)h+='<button class="proj-chip manage" data-pf="__manage">⚙ Verwalten</button>';
+  bar.innerHTML=h;
+}
+function renderProjectManage(){
+  var box=el('proj-manage'); if(!box)return;
+  if(!manageOpen||!projects.length){box.style.display='none';box.innerHTML='';return;}
+  box.style.display='';
+  box.innerHTML='<div class="pm-head">Projekte verwalten — Name ändern, Farbe wählen, löschen</div>'+projects.map(function(p){
+    var sw=PPAL.map(function(c){return '<span class="pm-sw'+(c===p.color?' on':'')+'" style="background:'+c+'" title="Farbe" onclick="LOS.recolorProject(\''+p.id+'\',\''+c+'\')"></span>';}).join('');
+    return '<div class="pm-row"><input class="inp" value="'+escapeHtml(p.name)+'" onchange="LOS.renameProject(\''+p.id+'\',this.value)"><div class="pm-sws">'+sw+'</div><button class="del" title="Projekt löschen" onclick="LOS.delProject(\''+p.id+'\')">✕</button></div>';
+  }).join('');
+}
+function renderProjects(){renderProjectChips();renderProjectManage();
+  var sel=el('todo-project'); if(sel){var cur=sel.value;sel.innerHTML=projOptionsHTML(cur);}
+}
 function addTodo(text,preColor){
   text=String(text||'').trim(); if(!text)return;
   var valid=['orange','green','blue'].indexOf(preColor)>=0;
-  var sc=el('todo-scope')?el('todo-scope').value:'heute';
-  var t={id:uid(),text:text,color:valid?preColor:pickColor,scope:sc,done:false,created:Date.now()};
-  todos.unshift(t);save('todos',todos);renderTodos();renderHome();
+  var pr=el('todo-project')?el('todo-project').value:'';
+  var due=el('todo-due')?el('todo-due').value:'';
+  var t={id:uid(),text:text,color:valid?preColor:pickColor,scope:'heute',project:pr||null,note:'',due:due||'',done:false,created:Date.now()};
+  todos.unshift(t);save('todos',todos);
+  if(el('todo-due'))el('todo-due').value='';
+  renderTodos();renderHome();renderCalendar();renderUpcoming();
 }
 function cycleColor(id){var order=['orange','green','blue'];var t=byId(id);if(!t)return;
   t.color=order[(order.indexOf(t.color)+1)%3];save('todos',todos);renderTodos();renderHome();}
 function cycleScope(id){var order=['heute','woche','monat'];var t=byId(id);if(!t)return;
   t.scope=order[(order.indexOf(t.scope||'heute')+1)%3];save('todos',todos);renderTodos();renderHome();}
+function todoRefresh(){renderTodos();renderHome();renderProjects();renderCalendar();renderUpcoming();}
 function completeTodo(id){var t=byId(id);if(!t)return;
   var e=document.querySelector('[data-todo="'+id+'"]');if(e)e.classList.add('removing');
-  setTimeout(function(){t.done=true;t.doneAt=Date.now();save('todos',todos);renderTodos();renderHome();},220);}
-function reopenTodo(id){var t=byId(id);if(!t)return;t.done=false;delete t.doneAt;save('todos',todos);renderTodos();renderHome();}
-function deleteTodo(id){todos=todos.filter(function(x){return x.id!==id;});save('todos',todos);renderTodos();renderHome();}
-function clearDone(){todos=todos.filter(function(x){return !x.done;});save('todos',todos);renderTodos();renderHome();}
+  setTimeout(function(){t.done=true;t.doneAt=Date.now();save('todos',todos);todoRefresh();},220);}
+function reopenTodo(id){var t=byId(id);if(!t)return;t.done=false;delete t.doneAt;save('todos',todos);todoRefresh();}
+function deleteTodo(id){todos=todos.filter(function(x){return x.id!==id;});save('todos',todos);todoRefresh();}
+function clearDone(){todos=todos.filter(function(x){return !x.done;});save('todos',todos);todoRefresh();}
 var SCOPE_LBL={heute:'Heute',woche:'Woche',monat:'Monat'};
-function todoHTML(t,editable){
+var DOW_SHORT=['Mo','Di','Mi','Do','Fr','Sa','So'];
+function dueDate(due){var p=String(due||'').split('-');if(p.length!==3)return null;var d=new Date(+p[0],+p[1]-1,+p[2]);return isNaN(d)?null:d;}
+function dueLabel(due){var d=dueDate(due);if(!d)return due;var t0=new Date();t0.setHours(0,0,0,0);
+  if(sameDay(d,t0))return 'Heute'; if(sameDay(d,addDays(t0,1)))return 'Morgen';
+  return DOW_SHORT[(d.getDay()+6)%7]+' '+d.getDate()+'.'+(d.getMonth()+1)+'.';}
+function isOverdue(due){var d=dueDate(due);if(!d)return false;var t0=new Date();t0.setHours(0,0,0,0);return d<t0;}
+function todoBadges(t){
   var lbl={orange:'Hoch',green:'Mittel',blue:'Niedrig',pending:'…'}[t.color]||'…';
+  var h='<span class="pill '+t.color+'" onclick="event.stopPropagation();LOS.cycleColor(\''+t.id+'\')">'+lbl+'</span>';
+  if(t.project)h+='<span class="proj-badge"><span class="pb-dot" style="background:'+projColor(t.project)+'"></span>'+escapeHtml(projName(t.project))+'</span>';
+  if(t.due)h+='<span class="pill due'+(isOverdue(t.due)?' overdue':'')+'">📅 '+dueLabel(t.due)+'</span>';
+  if(t.note&&t.note.trim())h+='<span class="note-ic" title="Notiz vorhanden">📝</span>';
+  return h;
+}
+function todoHTML(t,editable){
   if(editable&&editingTodo===t.id){
-    return '<div class="todo c-'+t.color+'" data-todo="'+t.id+'"><div style="flex:1"><input class="inp edit-tx" value="'+escapeHtml(t.text)+'" style="margin-bottom:8px">'+
-      '<div class="row"><select class="inp edit-col" style="flex:1"><option value="orange"'+(t.color==='orange'?' selected':'')+'>Hoch</option><option value="green"'+(t.color==='green'?' selected':'')+'>Mittel</option><option value="blue"'+(t.color==='blue'?' selected':'')+'>Niedrig</option></select>'+
-      '<button class="btn" onclick="LOS.saveTodo(\''+t.id+'\',this)">OK</button><button class="btn ghost" onclick="LOS.cancelEdit()">✕</button></div></div></div>';
+    return '<div class="todo c-'+t.color+'" data-todo="'+t.id+'"><div class="todo-detail">'+
+      '<input class="inp edit-tx" value="'+escapeHtml(t.text)+'">'+
+      '<textarea class="inp edit-note" placeholder="Notiz … Details, Links, Kontext">'+escapeHtml(t.note||'')+'</textarea>'+
+      '<div class="td-row">'+
+        '<select class="inp edit-proj">'+projOptionsHTML(t.project)+'</select>'+
+        '<select class="inp edit-col"><option value="orange"'+(t.color==='orange'?' selected':'')+'>Hoch</option><option value="green"'+(t.color==='green'?' selected':'')+'>Mittel</option><option value="blue"'+(t.color==='blue'?' selected':'')+'>Niedrig</option></select>'+
+        '<input class="inp edit-due" type="date" value="'+escapeHtml(t.due||'')+'" title="Fälligkeit → Kalender">'+
+      '</div>'+
+      '<div class="td-row" style="justify-content:space-between">'+
+        '<button class="btn ghost" style="color:var(--red)" onclick="LOS.deleteTodo(\''+t.id+'\')">Löschen</button>'+
+        '<span><button class="btn" onclick="LOS.saveTodoDetail(\''+t.id+'\',this)">Speichern</button> <button class="btn ghost" onclick="LOS.cancelEdit()">✕</button></span>'+
+      '</div></div></div>';
   }
   return '<div class="todo c-'+t.color+'" data-todo="'+t.id+'" draggable="true" ondragstart="LOS.dragStart(event,\''+t.id+'\')" ondragend="LOS.dragEnd(event)"><div class="chk '+t.color+'" onclick="LOS.completeTodo(\''+t.id+'\')"></div>'+
-    '<div class="tx"'+(editable?' onclick="LOS.editTodo(\''+t.id+'\')"':'')+'>'+escapeHtml(t.text)+'<span class="pill '+t.color+'" onclick="event.stopPropagation();LOS.cycleColor(\''+t.id+'\')">'+lbl+'</span><span class="pill scope" onclick="event.stopPropagation();LOS.cycleScope(\''+t.id+'\')">'+(SCOPE_LBL[t.scope]||'Heute')+'</span></div>'+
-    '<button class="del" onclick="LOS.completeTodo(\''+t.id+'\')">✕</button></div>';
+    '<div class="tx"'+(editable?' onclick="LOS.editTodo(\''+t.id+'\')"':'')+'>'+escapeHtml(t.text)+'<span class="tbadges">'+todoBadges(t)+'</span></div>'+
+    '<button class="del" title="Bearbeiten"'+(editable?' onclick="LOS.editTodo(\''+t.id+'\')"':'')+'>⋯</button></div>';
 }
 function doneHTML(t){
   return '<div class="todo done-row c-'+t.color+'" data-todo="'+t.id+'"><div class="chk '+t.color+'" style="background:var(--'+t.color+')" title="Wieder öffnen" onclick="LOS.reopenTodo(\''+t.id+'\')"></div>'+
@@ -1729,14 +1835,38 @@ function initTodoDnD(){
     });
   });
 }
-function renderTodos(){renderTodoCols('col-',true);renderTodoCols('home-col-',true);renderDone();}
+function todoSort(a,b){var o={orange:0,green:1,pending:1,blue:2};
+  var pa=(o[a.color]==null?1:o[a.color]),pb=(o[b.color]==null?1:o[b.color]);
+  if(pa!==pb)return pa-pb;
+  if(!!a.due!==!!b.due)return a.due?-1:1;
+  if(a.due&&b.due&&a.due!==b.due)return a.due<b.due?-1:1;
+  return (b.created||0)-(a.created||0);}
+function renderTodoList(){
+  var box=el('todo-list'); if(!box)return;
+  var list=todos.filter(function(t){return !t.done&&(projFilter==='alle'||(projFilter===''?!t.project:t.project===projFilter));});
+  list.sort(todoSort);
+  box.innerHTML=list.length?list.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty">Keine offenen To-Dos'+(projFilter==='alle'?'.':' in diesem Projekt.')+'</div>';
+}
+function renderTodos(){renderTodoList();renderTodoCols('home-col-',false);renderDone();}
 function focusVisible(sel){var els=document.querySelectorAll(sel);for(var i=0;i<els.length;i++){var e=els[i];if(e.offsetParent!==null){e.focus();try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}break;}}}
 function editTodo(id){editingTodo=id;renderTodos();focusVisible('.edit-tx');}
-function saveTodo(id,btn){var row=btn.closest('.todo');var tx=row.querySelector('.edit-tx'),col=row.querySelector('.edit-col');
-  var t=todos.filter(function(x){return x.id===id;})[0];
-  if(t){if(tx&&tx.value.trim())t.text=tx.value.trim();if(col)t.color=col.value;}
-  editingTodo=null;save('todos',todos);renderTodos();renderHome();}
+function saveTodoDetail(id,btn){
+  var t=byId(id); if(!t){editingTodo=null;renderTodos();return;}
+  var row=btn.closest('.todo');
+  var tx=row.querySelector('.edit-tx'),nt=row.querySelector('.edit-note'),pr=row.querySelector('.edit-proj'),col=row.querySelector('.edit-col'),du=row.querySelector('.edit-due');
+  if(tx&&tx.value.trim())t.text=tx.value.trim();
+  if(nt)t.note=nt.value;
+  if(pr)t.project=pr.value||null;
+  if(col)t.color=col.value;
+  if(du)t.due=du.value||'';
+  editingTodo=null;save('todos',todos);renderTodos();renderHome();renderProjects();renderCalendar();renderUpcoming();
+}
 function cancelEdit(){editingTodo=null;renderTodos();}
+function openTodo(id){var t=byId(id);if(!t)return;projFilter='alle';
+  var nav=document.querySelector('#nav button[data-tab="todos"]'); if(nav)nav.click();
+  editingTodo=id;renderProjects();renderTodos();
+  var e=document.querySelector('#todo-list [data-todo="'+id+'"]'); if(e&&e.scrollIntoView)e.scrollIntoView({block:'center'});
+}
 
 /* ================= HABITS ================= */
 /* Sonderfassung: eigene Habits aus dem Browser-Speicher überschreiben die Konfiguration */
@@ -1820,10 +1950,14 @@ function renderCalendar(){
   var html=DOW.map(function(d){return '<div class="dow">'+d+'</div>';}).join('');
   var first=new Date(y,m,1),offset=(first.getDay()+6)%7,start=addDays(first,-offset);
   for(var i=0;i<42;i++){
-    var d=addDays(start,i),out=d.getMonth()!==m,evs=events.filter(function(e){return occursOn(e,d);});
-    html+='<div class="day '+(out?'out':'')+' '+(evs.length?'has-ev':'')+' '+(sameDay(d,new Date())?'today':'')+'" onclick="LOS.dayClick(\''+ymd(d)+'\')"><div class="n">'+d.getDate()+'</div>'+
-      evs.slice(0,3).map(function(e){return '<div class="ev '+(e.recur!=='none'?'rec':'')+'" title="'+escapeHtml(e.title)+'">'+(e.time?e.time+' ':'')+escapeHtml(e.title)+'</div>';}).join('')+
-      (evs.length>3?'<div class="ev">+'+(evs.length-3)+'</div>':'')+'</div>';
+    var d=addDays(start,i),out=d.getMonth()!==m,ds=ymd(d);
+    var evs=events.filter(function(e){return occursOn(e,d);});
+    var tds=todos.filter(function(t){return !t.done&&t.due===ds;});
+    var items=evs.map(function(e){return {ev:1,x:e};}).concat(tds.map(function(t){return {ev:0,x:t};}));
+    html+='<div class="day '+(out?'out':'')+' '+(items.length?'has-ev':'')+' '+(sameDay(d,new Date())?'today':'')+'" onclick="LOS.dayClick(\''+ds+'\')"><div class="n">'+d.getDate()+'</div>'+
+      items.slice(0,3).map(function(it){ if(it.ev){var e=it.x;return '<div class="ev '+(e.recur!=='none'?'rec':'')+'" title="'+escapeHtml(e.title)+'">'+(e.time?e.time+' ':'')+escapeHtml(e.title)+'</div>';}
+        var t=it.x;return '<div class="ev todo-ev" style="border-left-color:'+(t.project?projColor(t.project):'var(--green)')+'" title="'+escapeHtml(t.text)+'">☐ '+escapeHtml(t.text)+'</div>';}).join('')+
+      (items.length>3?'<div class="ev">+'+(items.length-3)+'</div>':'')+'</div>';
   }
   ['cal-grid','home-cal-grid'].forEach(function(id){setHtml(id,html);});
 }
@@ -1834,14 +1968,22 @@ function dayClick(ds){
 }
 function upcomingOccurrences(days){
   var out=[],n0=new Date();n0.setHours(0,0,0,0);
-  for(var i=0;i<days;i++){var d=addDays(n0,i);
-    events.filter(function(e){return occursOn(e,d);}).forEach(function(e){out.push({d:d,e:e});});}
-  return out.sort(function(a,b){return a.d-b.d||String(a.e.time||'').localeCompare(String(b.e.time||''));});
+  for(var i=0;i<days;i++){var d=addDays(n0,i),ds=ymd(d);
+    events.filter(function(e){return occursOn(e,d);}).forEach(function(e){out.push({d:d,kind:'ev',x:e});});
+    todos.filter(function(t){return !t.done&&t.due===ds;}).forEach(function(t){out.push({d:d,kind:'todo',x:t});});
+  }
+  return out.sort(function(a,b){return a.d-b.d||String((a.kind==='ev'&&a.x.time)||'').localeCompare(String((b.kind==='ev'&&b.x.time)||''));});
 }
 function evItemHTML(o){
   var d=o.d,lbl=sameDay(d,new Date())?'Heute':sameDay(d,addDays(new Date(),1))?'Morgen':DOW[(d.getDay()+6)%7]+' '+d.getDate()+'.'+(d.getMonth()+1)+'.';
-  return '<div class="evitem clk"><span class="when">'+lbl+(o.e.time?' '+o.e.time:'')+'</span><div class="ti" onclick="LOS.editEvent(\''+o.e.id+'\')">'+escapeHtml(o.e.title)+'</div>'+
-    (o.e.recur&&o.e.recur!=='none'?'<span class="rb">'+recurLabel(o.e.recur)+'</span>':'')+'<button class="del" onclick="LOS.delEvent(\''+o.e.id+'\')">✕</button></div>';
+  if(o.kind==='todo'){var t=o.x;
+    return '<div class="evitem clk td"><span class="when td-when">'+lbl+'</span><div class="ti" onclick="LOS.openTodo(\''+t.id+'\')">☐ '+escapeHtml(t.text)+'</div>'+
+      (t.project?'<span class="proj-badge" style="margin:0"><span class="pb-dot" style="background:'+projColor(t.project)+'"></span>'+escapeHtml(projName(t.project))+'</span>':'')+
+      '<button class="del" title="Abhaken" onclick="LOS.completeTodo(\''+t.id+'\')">✓</button></div>';
+  }
+  var e=o.x;
+  return '<div class="evitem clk"><span class="when">'+lbl+(e.time?' '+e.time:'')+'</span><div class="ti" onclick="LOS.editEvent(\''+e.id+'\')">'+escapeHtml(e.title)+'</div>'+
+    (e.recur&&e.recur!=='none'?'<span class="rb">'+recurLabel(e.recur)+'</span>':'')+'<button class="del" onclick="LOS.delEvent(\''+e.id+'\')">✕</button></div>';
 }
 function evEditHTML(e){
   return '<div class="evitem" style="flex-wrap:wrap"><input class="inp ee-title" value="'+escapeHtml(e.title)+'" style="flex:2;min-width:150px">'+
@@ -1853,10 +1995,10 @@ function evEditHTML(e){
 function renderUpcomingInto(id,limit){
   var box=el(id);if(!box)return;
   var occ=upcomingOccurrences(30);
-  if(!occ.length){box.innerHTML='<div class="empty">Keine Termine — Tag im Kalender anklicken</div>';return;}
+  if(!occ.length){box.innerHTML='<div class="empty">Nichts geplant — Termin anlegen oder To-Do mit Datum</div>';return;}
   var shown=false;
   box.innerHTML=occ.slice(0,limit).map(function(o){
-    if(editingEvent===o.e.id){if(shown)return '';shown=true;return evEditHTML(o.e);}
+    if(o.kind==='ev'&&editingEvent===o.x.id){if(shown)return '';shown=true;return evEditHTML(o.x);}
     return evItemHTML(o);}).join('');
 }
 function renderUpcoming(){if(!MOD('kalender'))return;renderUpcomingInto('cal-upcoming',40);renderUpcomingInto('home-cal-upcoming',30);}
@@ -2174,6 +2316,8 @@ on('todo-input','keydown',function(e){if(e.key==='Enter'){addTodo(el('todo-input
     renderTodos();
   });
   on('done-clear','click',function(){if(confirm('Alle erledigten To-Dos endgültig löschen?'))clearDone();});
+  on('proj-bar','click',function(ev){var b=ev.target.closest('.proj-chip');if(!b)return;var pf=b.getAttribute('data-pf');
+    if(pf==='__add'){addProject();return;} if(pf==='__manage'){toggleManage();return;} setProjectFilter(pf);});
   initTodoDnD();
   on('habit-add-btn','click',function(){addHabit(el('habit-new').value);el('habit-new').value='';});
   on('habit-new','keydown',function(e){if(e.key==='Enter'){addHabit(el('habit-new').value);el('habit-new').value='';}});
@@ -2460,11 +2604,12 @@ if(fip)fip.innerHTML=FI.posten.map(function(p){return '<option value="'+p.key+'"
 window.LOS={completeTodo:completeTodo,cycleColor:cycleColor,cycleScope:cycleScope,reopenTodo:reopenTodo,
   deleteTodo:deleteTodo,dragStart:dragStart,dragEnd:dragEnd,toggleHabit:toggleHabit,delHabit:delHabit,
   renameHabit:renameHabit,delVision:delVision,delEvent:delEvent,
-  toggleGoal:toggleGoal,delGoal:delGoal,delManualIncome:delManualIncome,editTodo:editTodo,saveTodo:saveTodo,
-  cancelEdit:cancelEdit,editEvent:editEvent,saveEvent:saveEvent,cancelEventEdit:cancelEventEdit,dayClick:dayClick};
+  toggleGoal:toggleGoal,delGoal:delGoal,delManualIncome:delManualIncome,editTodo:editTodo,saveTodoDetail:saveTodoDetail,
+  cancelEdit:cancelEdit,editEvent:editEvent,saveEvent:saveEvent,cancelEventEdit:cancelEventEdit,dayClick:dayClick,
+  openTodo:openTodo,renameProject:renameProject,recolorProject:recolorProject,delProject:delProject};
 
 tick(); setInterval(tick,20000);
-renderFinance(); renderTodos(); renderHabits(); renderCalendar(); renderUpcoming(); renderGoals();
+renderFinance(); renderProjects(); renderTodos(); renderHabits(); renderCalendar(); renderUpcoming(); renderGoals();
 renderKennzahlen(); renderMeilensteine(); initScratch(); renderVision(); renderHome(); drawHomeCharts();
 
 })();
