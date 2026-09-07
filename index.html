@@ -1301,6 +1301,21 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
     _set.apply(this,arguments);
     try{ if(bereit&&this===window.localStorage&&typeof k==='string'&&k.indexOf(NS)===0) push(k.slice(NS.length),String(v)); }catch(e){}
   };
+  /* ?frisch (08.09.2026): verwirft den lokalen Stand komplett, damit der
+     Server-Stand sauber uebernommen wird — fuer ein Geraet, das auf alten
+     Daten haengt (Handy zog den PC-Stand nicht nach). Danach laeuft der
+     normale Start-Abgleich mit leerem localStorage = reines Uebernehmen. */
+  try{
+    if(/[?&]frisch(\b|=)/.test(location.search)){
+      var fdel=[];
+      for(var fi=0;fi<localStorage.length;fi++){ var fk=localStorage.key(fi); if(fk&&fk.indexOf(NS)===0) fdel.push(fk); }
+      fdel.forEach(function(k){ localStorage.removeItem(k); });
+      sessionStorage.removeItem('finnSyncLifeos');
+      /* Parameter aus der URL nehmen, sonst leert der Auto-Reload nach dem
+         Abgleich endlos weiter (Endlosschleife). */
+      try{ history.replaceState(null,'',location.pathname+location.hash); }catch(e){}
+    }
+  }catch(e){}
   try{
     if(sessionStorage.getItem('finnSyncLifeos')){ bereit=true; }
     else{
@@ -1325,6 +1340,39 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
       }).catch(function(){ bereit=true; });
     }
   }catch(e){ bereit=true; }
+
+  /* Dauer-Sync (08.09.2026): Bei jeder Rueckkehr zur App frisch vom Server holen
+     — Remote gewinnt fuer vorhandene Schluessel, Reload nur bei echter Aenderung.
+     So zieht das Handy Aenderungen vom PC automatisch nach (und umgekehrt), ohne
+     dass man je manuell neu laden muss. Gedrosselt auf max. alle 4s. Der Push-Hook
+     bleibt unberuehrt (Schreiben ueber _set, nicht ueber den gehookten setItem). */
+  var _letzterPull=0;
+  function _serverPull(){
+    fetch(URL+'?app=eq.'+APP+'&select=key,value',{headers:{'apikey':SB,'Authorization':'Bearer '+SB},cache:'no-store'})
+    .then(function(r){return r.json();})
+    .then(function(rows){
+      if(!Array.isArray(rows)) return;
+      var anders=false;
+      rows.forEach(function(row){
+        var roh=row&&row.value&&row.value.raw;
+        if(typeof roh!=='string') return;
+        if(localStorage.getItem(NS+row.key)!==roh){ _set.call(localStorage,NS+row.key,roh); anders=true; }
+      });
+      if(anders) location.reload();
+    })['catch'](function(){});
+  }
+  document.addEventListener('visibilitychange',function(){
+    if(document.visibilityState!=='visible'||!bereit) return;
+    var jetzt=Date.now();
+    if(jetzt-_letzterPull<4000) return;
+    _letzterPull=jetzt; _serverPull();
+  });
+  window.addEventListener('focus',function(){
+    if(!bereit) return;
+    var jetzt=Date.now();
+    if(jetzt-_letzterPull<4000) return;
+    _letzterPull=jetzt; _serverPull();
+  });
 })();
 </script>
 <script>
