@@ -215,6 +215,14 @@ body{min-height:100vh;background:
 .tl-proj{color:var(--dim);font-size:11px;margin-left:5px;white-space:nowrap}
 .tl-due{font-family:var(--mono);font-size:9px;color:var(--blue);margin-left:6px;white-space:nowrap}
 .tl-note-ic{margin-left:5px;font-size:11px;opacity:.5}
+/* Prio-Bereiche im To-Do-Tab: To-Do reinziehen = Priorität setzen (08.09.2026) */
+.prio-bereich{margin-top:14px}
+.prio-bereich:first-child{margin-top:0}
+.pb-head{font-family:var(--mono);font-size:9.5px;letter-spacing:.14em;text-transform:uppercase;color:var(--dim);margin-bottom:7px;display:flex;align-items:center;gap:7px}
+.pb-dot-l{width:9px;height:9px;border-radius:50%;flex:none}
+.prio-drop{min-height:16px;border-radius:8px;transition:background .15s,outline-color .15s}
+.prio-drop.zone-hot{background:rgba(95,214,255,.06);outline:1px dashed rgba(95,214,255,.45);outline-offset:3px}
+.prio-drop .pb-leer{font-family:var(--mono);font-size:9.5px;color:var(--dim2);letter-spacing:.05em;padding:8px 4px}
 /* ============ HANDY / MOBIL (04.09.2026): cleanes, kompaktes App-Layout ============ */
 @media(max-width:640px){
   /* Safe-Area (Notch/Home-Indikator) + engeres Padding */
@@ -1156,8 +1164,19 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
       <div id="todo-active" class="drop-zone"></div>
     </div>
     <div class="panel" style="margin-top:14px">
-      <div class="zone-head"><span class="zh-title">Offen</span></div>
-      <div id="todo-open" class="drop-zone"></div>
+      <div class="zone-head"><span class="zh-title">Offen · nach Priorität</span><span class="zh-hint">To-Do zwischen den Bereichen ziehen = Priorität ändern</span></div>
+      <div class="prio-bereich">
+        <div class="pb-head"><span class="pb-dot-l" style="background:var(--orange)"></span>Hoch</div>
+        <div id="todo-hoch" class="drop-zone prio-drop" data-prio="orange"></div>
+      </div>
+      <div class="prio-bereich">
+        <div class="pb-head"><span class="pb-dot-l" style="background:var(--green)"></span>Mittel</div>
+        <div id="todo-mittel" class="drop-zone prio-drop" data-prio="green"></div>
+      </div>
+      <div class="prio-bereich">
+        <div class="pb-head"><span class="pb-dot-l" style="background:var(--blue)"></span>Niedrig</div>
+        <div id="todo-niedrig" class="drop-zone prio-drop" data-prio="blue"></div>
+      </div>
     </div>
     <div class="panel" style="margin-top:14px">
       <div class="phead"><div class="plabel"><b>T2</b> // ERLEDIGT</div><div class="pmeta"><span id="done-count">0</span> abgehakt · <button class="btn ghost" id="done-clear" type="button">endgültig löschen</button></div></div>
@@ -1937,19 +1956,24 @@ function dragStart(ev,id){dragId=id;
 function dragEnd(ev){var e=ev.target.closest('.todo,.tl-row');if(e)e.classList.remove('dragging');
   var hl=document.querySelectorAll('.col-drop, .zone-hot, .hf-drop');for(var i=0;i<hl.length;i++)hl[i].classList.remove('col-drop','zone-hot','hf-drop');}
 function initStatusDnD(){
-  /* Zwei Status-Zonen: ein To-Do in „In Arbeit" ziehen setzt status='aktiv',
-     zurück in „Offen" setzt 'offen'. So sieht Finn die aktuelle Lage (04.09.2026). */
-  [['todo-active','aktiv'],['todo-open','offen']].forEach(function(pair){
-    var box=el(pair[0]); if(!box)return;
+  /* Ziehen setzt Status/Priorität (08.09.2026): in „In Arbeit" = status aktiv;
+     in einen Prio-Bereich (Hoch/Mittel/Niedrig) = Priorität setzen + status offen.
+     So dreht Finn ein To-Do per Drag rein/raus und zwischen den Prioritäten. */
+  function dropZone(id,fn){
+    var box=el(id); if(!box)return;
     box.addEventListener('dragover',function(ev){ev.preventDefault();try{ev.dataTransfer.dropEffect='move';}catch(e){}box.classList.add('zone-hot');});
     box.addEventListener('dragleave',function(ev){if(ev.target===box)box.classList.remove('zone-hot');});
     box.addEventListener('drop',function(ev){
       ev.preventDefault();box.classList.remove('zone-hot');
-      var id=dragId||(function(){try{return ev.dataTransfer.getData('text/plain');}catch(e){return null;}})();
-      var t=byId(id); if(!t)return;
-      t.status=pair[1]; dragId=null; save('todos',todos); renderTodos(); renderHome(); renderProjects();
+      var tid=dragId||(function(){try{return ev.dataTransfer.getData('text/plain');}catch(e){return null;}})();
+      var t=byId(tid); if(!t)return;
+      fn(t); dragId=null; save('todos',todos); renderTodos(); renderHome(); renderProjects();
     });
-  });
+  }
+  dropZone('todo-active',function(t){t.status='aktiv';});
+  dropZone('todo-hoch',  function(t){t.color='orange';t.status='offen';});
+  dropZone('todo-mittel',function(t){t.color='green'; t.status='offen';});
+  dropZone('todo-niedrig',function(t){t.color='blue';  t.status='offen';});
 }
 function initTodoDnD(){
   initStatusDnD();
@@ -1982,14 +2006,18 @@ function todoSort(a,b){var o={orange:0,green:1,pending:1,blue:2};
   if(a.due&&b.due&&a.due!==b.due)return a.due<b.due?-1:1;
   return (b.created||0)-(a.created||0);}
 function renderTodoZones(){
-  var af=el('todo-active'), of=el('todo-open'); if(!af||!of)return;
+  var af=el('todo-active'); if(!af)return;
   function inFilter(t){return !t.done&&(projFilter==='alle'||(projFilter===''?!t.project:t.project===projFilter));}
-  var aktiv=todos.filter(function(t){return inFilter(t)&&t.status==='aktiv';}).sort(todoSort);
-  var offen=todos.filter(function(t){return inFilter(t)&&t.status!=='aktiv';}).sort(todoSort);
   /* Beim Bearbeiten den vollen Detail-Editor (todoHTML), sonst die cleane Zeile */
   function zeile(t){ return (editingTodo===t.id)?todoHTML(t,true):listRowHTML(t,true,true); }
+  var aktiv=todos.filter(function(t){return inFilter(t)&&t.status==='aktiv';});
   af.innerHTML=aktiv.length?aktiv.map(zeile).join(''):'<div class="empty zone-empty">Zieh ein To-Do hierher, das du gerade angehst ⚡</div>';
-  of.innerHTML=offen.length?offen.map(zeile).join(''):'<div class="empty">Nichts offen'+(projFilter==='alle'?'.':' in diesem Projekt.')+'</div>';
+  /* Offen in drei Prio-Bereiche — reinziehen setzt die Prio */
+  [['todo-hoch','orange'],['todo-mittel','green'],['todo-niedrig','blue']].forEach(function(p){
+    var box=el(p[0]); if(!box)return;
+    var list=todos.filter(function(t){return inFilter(t)&&t.status!=='aktiv'&&(t.color===p[1]||(p[1]==='green'&&t.color==='pending'));});
+    box.innerHTML=list.length?list.map(zeile).join(''):'<div class="pb-leer">— hierher ziehen —</div>';
+  });
 }
 function renderTodos(){renderTodoZones();renderDone();renderHeuteFokus();renderOffenListe();}
 /* Cleaner Umbau (08.09.2026): EINE ruhige Zeile fuer alle To-Do-Listen. Dicker
