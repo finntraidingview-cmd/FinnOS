@@ -1986,22 +1986,25 @@ function renderTodoZones(){
   function inFilter(t){return !t.done&&(projFilter==='alle'||(projFilter===''?!t.project:t.project===projFilter));}
   var aktiv=todos.filter(function(t){return inFilter(t)&&t.status==='aktiv';}).sort(todoSort);
   var offen=todos.filter(function(t){return inFilter(t)&&t.status!=='aktiv';}).sort(todoSort);
-  af.innerHTML=aktiv.length?aktiv.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty zone-empty">Zieh ein To-Do hierher, das du gerade angehst ⚡</div>';
-  of.innerHTML=offen.length?offen.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty">Nichts offen'+(projFilter==='alle'?'.':' in diesem Projekt.')+'</div>';
+  /* Beim Bearbeiten den vollen Detail-Editor (todoHTML), sonst die cleane Zeile */
+  function zeile(t){ return (editingTodo===t.id)?todoHTML(t,true):listRowHTML(t,true,true); }
+  af.innerHTML=aktiv.length?aktiv.map(zeile).join(''):'<div class="empty zone-empty">Zieh ein To-Do hierher, das du gerade angehst ⚡</div>';
+  of.innerHTML=offen.length?offen.map(zeile).join(''):'<div class="empty">Nichts offen'+(projFilter==='alle'?'.':' in diesem Projekt.')+'</div>';
 }
 function renderTodos(){renderTodoZones();renderDone();renderHeuteFokus();renderOffenListe();}
 /* Cleaner Umbau (08.09.2026): EINE ruhige Zeile fuer alle To-Do-Listen. Dicker
    farbiger Prio-Streifen links + Label (Hoch/Mittel/Niedrig) = Prioritaet auf
    einen Blick. Klick auf das Prio-Label wechselt die Prioritaet, Klick auf den
    Text oeffnet Details, Checkbox hakt ab. mitGrip=true => drag-sortierbar (Heute). */
-function listRowHTML(t,mitGrip){
+function listRowHTML(t,mitGrip,imTab){
   var c=(t.color==='pending')?'green':t.color;
   var lbl={orange:'Hoch',green:'Mittel',blue:'Niedrig'}[c]||'Mittel';
+  var klick=imTab?'LOS.editTodo':'LOS.openTodo';
   return '<div class="tl-row c-'+c+(mitGrip?' drag':'')+'" data-todo="'+t.id+'"'+(mitGrip?' draggable="true" ondragstart="LOS.dragStart(event,\''+t.id+'\')" ondragend="LOS.dragEnd(event)"':'')+'>'+
-    (mitGrip?'<span class="tl-grip" title="Ziehen = Reihenfolge">☰</span>':'')+
+    (mitGrip?'<span class="tl-grip" title="Ziehen">☰</span>':'')+
     '<div class="chk '+c+'" title="Erledigt" onclick="LOS.completeTodo(\''+t.id+'\')"></div>'+
     '<span class="tl-prio '+c+'" title="Priorität wechseln" onclick="event.stopPropagation();LOS.cycleColor(\''+t.id+'\')">'+lbl+'</span>'+
-    '<div class="tl-tx" title="Details" onclick="LOS.openTodo(\''+t.id+'\')">'+escapeHtml(t.text)+
+    '<div class="tl-tx" title="Details" onclick="'+klick+'(\''+t.id+'\')">'+escapeHtml(t.text)+
       (t.project?'<span class="tl-proj">· '+escapeHtml(projName(t.project))+'</span>':'')+
       (t.due?'<span class="tl-due">📅 '+dueLabel(t.due)+'</span>':'')+
       (t.note&&t.note.trim()?'<span class="tl-note-ic" title="Notiz vorhanden">📝</span>':'')+
