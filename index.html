@@ -192,6 +192,22 @@ body{min-height:100vh;background:
 .drop-zone .empty.zone-empty{border-color:rgba(95,214,255,.28);color:#6fb8d8}
 .pill.aktiv{background:rgba(95,214,255,.16);color:#7fe6ff;margin-right:2px}
 .todo.st-aktiv{border-left-color:#7fe6ff;background:linear-gradient(180deg,rgba(95,214,255,.05),var(--panel2))}
+/* ---- Heute-Fokus-Box auf dem Dashboard (08.09.2026) ---- */
+.heute-fokus{border:1px solid rgba(95,214,255,.24);border-radius:12px;padding:12px 14px;background:linear-gradient(180deg,rgba(95,214,255,.055),transparent);transition:outline-color .15s}
+.heute-fokus.hf-drop{outline:1px dashed rgba(95,214,255,.5);outline-offset:3px}
+.hf-head{font-family:var(--mono);font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:#7fe6ff;margin-bottom:10px}
+.hf-empty{font-family:var(--mono);font-size:10px;color:var(--dim2);letter-spacing:.05em;padding:8px 2px;line-height:1.5}
+.hf-row{display:flex;align-items:center;gap:10px;padding:9px 11px;border:1px solid var(--line);border-left-width:3px;border-radius:9px;background:var(--panel2);margin-bottom:7px;cursor:grab;transition:.15s}
+.hf-row:last-child{margin-bottom:0}
+.hf-row:hover{border-color:rgba(95,214,255,.3)}
+.hf-row.c-orange{border-left-color:var(--orange)}.hf-row.c-green{border-left-color:var(--green)}.hf-row.c-blue{border-left-color:var(--blue)}
+.hf-row.dragging{opacity:.4}
+.hf-grip{color:var(--dim2);font-size:13px;flex:none;line-height:1}
+.hf-row .chk{width:19px;height:19px;border-radius:5px;border:2px solid var(--dim2);flex:none;cursor:pointer;transition:.15s}
+.hf-row .chk:hover{border-color:var(--ink2)}
+.hf-row .chk.orange{border-color:var(--orange)}.hf-row .chk.green{border-color:var(--green)}.hf-row .chk.blue{border-color:var(--blue)}
+.hf-tx{flex:1;font-size:13px;line-height:1.35;color:var(--ink);cursor:pointer}
+.hf-row .pb-dot{width:8px;height:8px;border-radius:50%;flex:none}
 /* ============ HANDY / MOBIL (04.09.2026): cleanes, kompaktes App-Layout ============ */
 @media(max-width:640px){
   /* Safe-Area (Notch/Home-Indikator) + engeres Padding */
@@ -945,6 +961,8 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
     <div class="grid" data-mod="todos">
       <div class="panel a-todo">
         <div class="phead"><div class="plabel"><b>02</b> // TO-DOS</div><div class="pmeta"><span id="home-todos">—</span> offen · <span id="home-todos-lbl"></span></div></div>
+        <div class="heute-fokus" id="home-heute"></div>
+        <div class="colgroup-label" style="margin-top:16px;opacity:.7">Alle offenen · nach Priorität</div>
         <div class="grid cols-3" style="gap:12px;margin-top:2px">
           <div><div class="colgroup-label"><span class="d" style="background:var(--orange)"></span>Hoch</div><div id="home-col-orange"></div></div>
           <div><div class="colgroup-label"><span class="d" style="background:var(--green)"></span>Mittel</div><div id="home-col-green"></div></div>
@@ -1913,9 +1931,9 @@ function renderDone(){
 }
 function dragStart(ev,id){dragId=id;
   try{ev.dataTransfer.setData('text/plain',id);ev.dataTransfer.effectAllowed='move';}catch(e){}
-  var e=ev.target.closest('.todo');if(e)e.classList.add('dragging');}
-function dragEnd(ev){var e=ev.target.closest('.todo');if(e)e.classList.remove('dragging');
-  var hl=document.querySelectorAll('.col-drop, .zone-hot');for(var i=0;i<hl.length;i++)hl[i].classList.remove('col-drop','zone-hot');}
+  var e=ev.target.closest('.todo,.hf-row');if(e)e.classList.add('dragging');}
+function dragEnd(ev){var e=ev.target.closest('.todo,.hf-row');if(e)e.classList.remove('dragging');
+  var hl=document.querySelectorAll('.col-drop, .zone-hot, .hf-drop');for(var i=0;i<hl.length;i++)hl[i].classList.remove('col-drop','zone-hot','hf-drop');}
 function initStatusDnD(){
   /* Zwei Status-Zonen: ein To-Do in „In Arbeit" ziehen setzt status='aktiv',
      zurück in „Offen" setzt 'offen'. So sieht Finn die aktuelle Lage (04.09.2026). */
@@ -1953,6 +1971,7 @@ function initTodoDnD(){
       dragId=null;save('todos',todos);renderTodos();renderHome();
     });
   });
+  initHeuteDnD();
 }
 function todoSort(a,b){var o={orange:0,green:1,pending:1,blue:2};
   var pa=(o[a.color]==null?1:o[a.color]),pb=(o[b.color]==null?1:o[b.color]);
@@ -1968,7 +1987,47 @@ function renderTodoZones(){
   af.innerHTML=aktiv.length?aktiv.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty zone-empty">Zieh ein To-Do hierher, das du gerade angehst ⚡</div>';
   of.innerHTML=offen.length?offen.map(function(t){return todoHTML(t,true);}).join(''):'<div class="empty">Nichts offen'+(projFilter==='alle'?'.':' in diesem Projekt.')+'</div>';
 }
-function renderTodos(){renderTodoZones();renderTodoCols('home-col-',false);renderDone();}
+function renderTodos(){renderTodoZones();renderTodoCols('home-col-',false);renderDone();renderHeuteFokus();}
+/* Heute-Fokus (08.09.2026): kompakte Liste der offenen „Heute"-To-Dos auf dem
+   Dashboard. Reihenfolge = Array-Reihenfolge (per Drag&Drop aenderbar =
+   Wichtigkeit). Ein To-Do aus einer anderen Spalte in die Box ziehen setzt es
+   auf „Heute" — so braucht Finn nie ein Datum. */
+function heuteRowHTML(t){
+  return '<div class="hf-row c-'+t.color+'" data-todo="'+t.id+'" draggable="true" ondragstart="LOS.dragStart(event,\''+t.id+'\')" ondragend="LOS.dragEnd(event)">'+
+    '<span class="hf-grip" title="Ziehen = Reihenfolge">☰</span>'+
+    '<div class="chk '+t.color+'" title="Erledigt" onclick="LOS.completeTodo(\''+t.id+'\')"></div>'+
+    '<div class="hf-tx" title="Details" onclick="LOS.openTodo(\''+t.id+'\')">'+escapeHtml(t.text)+'</div>'+
+    (t.project?'<span class="pb-dot" style="background:'+projColor(t.project)+'" title="'+escapeHtml(projName(t.project))+'"></span>':'')+
+  '</div>';
+}
+function renderHeuteFokus(){
+  var box=el('home-heute'); if(!box)return;
+  var heute=todos.filter(function(t){return !t.done&&t.scope==='heute';});
+  if(!heute.length){
+    box.innerHTML='<div class="hf-head">🎯 Heute</div><div class="hf-empty">Nichts für heute. Zieh ein To-Do von unten hier rein — dann steht es auf „Heute" (kein Datum nötig).</div>';
+    return;
+  }
+  box.innerHTML='<div class="hf-head">🎯 Heute · '+heute.length+' offen</div>'+heute.map(heuteRowHTML).join('');
+}
+function initHeuteDnD(){
+  var box=el('home-heute'); if(!box)return;
+  box.addEventListener('dragover',function(ev){ev.preventDefault();try{ev.dataTransfer.dropEffect='move';}catch(e){}box.classList.add('hf-drop');});
+  box.addEventListener('dragleave',function(ev){if(ev.target===box)box.classList.remove('hf-drop');});
+  box.addEventListener('drop',function(ev){
+    ev.preventDefault();box.classList.remove('hf-drop');
+    var id=dragId||(function(){try{return ev.dataTransfer.getData('text/plain');}catch(e){return null;}})();
+    var t=byId(id); if(!t)return;
+    t.scope='heute'; /* reingezogen = ab jetzt Heute-To-Do */
+    var target=ev.target&&ev.target.closest?ev.target.closest('.hf-row'):null;
+    if(target&&target.getAttribute('data-todo')!==id){
+      var tid=target.getAttribute('data-todo');
+      todos=todos.filter(function(x){return x.id!==id;});
+      var idx=-1;todos.some(function(x,i){if(x.id===tid){idx=i;return true;}return false;});
+      if(idx>=0)todos.splice(idx,0,t);else todos.unshift(t);
+    }
+    dragId=null;save('todos',todos);renderTodos();renderHome();
+  });
+}
 function focusVisible(sel){var els=document.querySelectorAll(sel);for(var i=0;i<els.length;i++){var e=els[i];if(e.offsetParent!==null){e.focus();try{e.setSelectionRange(e.value.length,e.value.length);}catch(x){}break;}}}
 function editTodo(id){editingTodo=id;renderTodos();focusVisible('.edit-tx');}
 function saveTodoDetail(id,btn){
@@ -2339,6 +2398,7 @@ function renderHome(){
   }
   if(MOD('todos')){
     renderTodoCols('home-col-',true);
+    renderHeuteFokus();
     var openTodos=todos.filter(function(t){return !t.done;});
     setTxt('home-todos',openTodos.length);
     var orangeN=openTodos.filter(function(t){return t.color==='orange';}).length;
