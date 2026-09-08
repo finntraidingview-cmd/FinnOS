@@ -225,14 +225,22 @@ body{min-height:100vh;background:
 .prio-drop .pb-leer{font-family:var(--mono);font-size:9.5px;color:var(--dim2);letter-spacing:.05em;padding:8px 4px}
 /* ============ HANDY / MOBIL (04.09.2026): cleanes, kompaktes App-Layout ============ */
 @media(max-width:640px){
-  /* Safe-Area (Notch/Home-Indikator) + engeres Padding */
-  .wrap{padding:12px 12px calc(60px + env(safe-area-inset-bottom))}
-  .topbar{gap:8px 12px;padding:calc(8px + env(safe-area-inset-top)) 2px 12px}
+  /* Safe-Area oben + Platz unten für die feste Navigationsleiste */
+  .wrap{padding:12px 12px calc(76px + env(safe-area-inset-bottom))}
+  /* backdrop-filter raus: sonst wird die topbar zum Bezugsrahmen der fixed-Nav
+     (backdrop-filter erzeugt einen containing block) und die Leiste klebt oben. */
+  .topbar{gap:8px 12px;padding:calc(8px + env(safe-area-inset-top)) 2px 12px;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
   .brand{font-size:11px;letter-spacing:.14em}
   .clock .t{font-size:15px}.clock .d{font-size:9px}
-  /* Nav: kompakte Tab-Zeile statt sperriger Blöcke */
-  .nav{order:3;width:100%;gap:3px;margin-top:2px}
-  .nav button{font-size:10px;padding:6px 9px;letter-spacing:.06em}
+  /* Navigation als feste Leiste UNTEN (Daumen-erreichbar, wie native Apps) */
+  .nav{position:fixed;left:0;right:0;top:auto;bottom:0;z-index:70;display:flex;width:100%;margin:0;gap:0;
+    background:rgba(7,11,17,.97);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px);
+    border-top:1px solid var(--line);padding:7px 4px calc(7px + env(safe-area-inset-bottom))}
+  .nav button{flex:1;font-size:9.5px;letter-spacing:.02em;text-transform:none;padding:9px 2px;
+    border:none;border-radius:9px;color:var(--dim);text-align:center;transition:color .15s}
+  .nav button.active{background:transparent;color:#7fe6ff;position:relative}
+  .nav button.active::before{content:"";position:absolute;top:0;left:50%;transform:translateX(-50%);width:18px;height:2px;background:#7fe6ff;border-radius:2px}
+  .nav button:hover{background:transparent}
   /* Deko raus: cleaner Blick + spart GPU/Akku (und Hitze) am Handy */
   .hud-bg,.hud-ring,.fx-scan,.nexus-panel{display:none!important}
   /* Panels + Kopfzeilen enger, Kopf gestapelt statt gequetscht */
@@ -933,9 +941,7 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
       <button data-tab="home" class="active">Home</button>
       <button data-tab="todos" data-mod="todos">To-Dos</button>
       <button data-tab="calendar" data-mod="kalender">Kalender</button>
-      <button data-tab="finance" data-mod="finanzen">Finanzen</button>
       <button data-tab="habits" data-mod="habits">Habits</button>
-      <button data-tab="goals" data-mod="ziele">Ziele</button>
       <button data-tab="fokus">Fokus</button>
       <button data-tab="vision">Vision</button>
     </div>
