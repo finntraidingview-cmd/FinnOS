@@ -102,12 +102,12 @@ body{min-height:100vh;background:
 .todo.removing{opacity:0;transform:translateX(20px)}
 .todo .chk{width:20px;height:20px;border-radius:6px;border:2px solid var(--dim2);flex:none;cursor:pointer;margin-top:1px;transition:.15s}
 .todo .chk:hover{border-color:var(--ink2)}
-.todo.c-orange{border-left:3px solid var(--orange)}.todo.c-green{border-left:3px solid var(--green)}.todo.c-blue{border-left:3px solid var(--blue)}
-.todo .chk.orange{border-color:var(--orange)}.todo .chk.green{border-color:var(--green)}.todo .chk.blue{border-color:var(--blue)}
+.todo.c-orange{border-left:3px solid var(--red)}.todo.c-green{border-left:3px solid var(--gold)}.todo.c-blue{border-left:3px solid var(--blue)}
+.todo .chk.orange{border-color:var(--red)}.todo .chk.green{border-color:var(--gold)}.todo .chk.blue{border-color:var(--blue)}
 .todo .tx{flex:1;font-size:13.5px;line-height:1.45;color:var(--ink);padding-top:1px}
 .todo .pill{display:inline-block;font-family:var(--mono);font-size:9px;letter-spacing:.12em;text-transform:uppercase;padding:3px 8px;border-radius:20px;margin-top:5px;cursor:pointer;user-select:none}
-.pill.orange{background:rgba(231,162,74,.14);color:var(--orange)}
-.pill.green{background:rgba(95,211,154,.14);color:var(--green)}
+.pill.orange{background:rgba(224,86,74,.14);color:var(--red)}
+.pill.green{background:rgba(217,180,90,.16);color:var(--gold)}
 .pill.blue{background:rgba(95,154,214,.14);color:var(--blue)}
 .pill.pending{background:rgba(255,255,255,.06);color:var(--dim)}
 .todo .del{color:var(--dim2);background:none;border:none;cursor:pointer;font-size:16px;line-height:1;padding:2px 4px}
@@ -152,7 +152,7 @@ body{min-height:100vh;background:
 .todo .tx{cursor:text}
 .prio-pick{display:flex;gap:8px;align-items:center;padding:0 6px;flex:none}
 .pdot{width:18px;height:18px;border-radius:50%;cursor:pointer;flex:none;opacity:.4;border:2px solid transparent;transition:.15s}
-.pdot.orange{background:var(--orange)}.pdot.green{background:var(--green)}.pdot.blue{background:var(--blue)}
+.pdot.orange{background:var(--red)}.pdot.green{background:var(--gold)}.pdot.blue{background:var(--blue)}
 .pdot.sel{opacity:1;border-color:rgba(255,255,255,.85);box-shadow:0 0 8px rgba(255,255,255,.25)}
 .todo .pill.scope{background:rgba(255,255,255,.07);color:var(--ink2);margin-left:6px}
 /* ---- Projekte / To-Do v2 (04.09.2026): eigene Kategorien, Notizen, Faelligkeit ---- */
@@ -202,15 +202,15 @@ body{min-height:100vh;background:
 .tl-row{display:flex;align-items:center;gap:11px;padding:10px 12px;border:1px solid var(--line);border-left-width:4px;border-radius:8px;background:var(--panel2);margin-bottom:7px;transition:.15s}
 .tl-row:last-child{margin-bottom:0}
 .tl-row:hover{border-color:rgba(95,214,255,.3)}
-.tl-row.c-orange{border-left-color:var(--orange)}.tl-row.c-green{border-left-color:var(--green)}.tl-row.c-blue{border-left-color:var(--blue)}
+.tl-row.c-orange{border-left-color:var(--red)}.tl-row.c-green{border-left-color:var(--gold)}.tl-row.c-blue{border-left-color:var(--blue)}
 .tl-row.drag{cursor:grab}
 .tl-row.dragging{opacity:.4}
 .tl-grip{color:var(--dim2);font-size:13px;flex:none;line-height:1;cursor:grab}
 .tl-row .chk{width:19px;height:19px;border-radius:5px;border:2px solid var(--dim2);flex:none;cursor:pointer;transition:.15s}
 .tl-row .chk:hover{border-color:var(--ink2)}
-.tl-row .chk.orange{border-color:var(--orange)}.tl-row .chk.green{border-color:var(--green)}.tl-row .chk.blue{border-color:var(--blue)}
+.tl-row .chk.orange{border-color:var(--red)}.tl-row .chk.green{border-color:var(--gold)}.tl-row .chk.blue{border-color:var(--blue)}
 .tl-prio{font-family:var(--mono);font-size:9px;letter-spacing:.1em;text-transform:uppercase;font-weight:700;flex:none;width:50px}
-.tl-prio.orange{color:var(--orange)}.tl-prio.green{color:var(--green)}.tl-prio.blue{color:var(--blue)}
+.tl-prio.orange{color:var(--red)}.tl-prio.green{color:var(--gold)}.tl-prio.blue{color:var(--blue)}
 .tl-tx{flex:1;font-size:13px;line-height:1.35;color:var(--ink);cursor:pointer}
 .tl-proj{color:var(--dim);font-size:11px;margin-left:5px;white-space:nowrap}
 .tl-due{font-family:var(--mono);font-size:9px;color:var(--blue);margin-left:6px;white-space:nowrap}
@@ -448,7 +448,7 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
 .boot{position:fixed;inset:0;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:24px;
   font-family:var(--mono);color:var(--cyan-bright);text-align:center;
   background:radial-gradient(circle at 50% 44%, #07131d, #02040a 72%);
-  transition:opacity .65s ease}
+  transition:opacity .2s ease}
 .boot.hide{opacity:0;pointer-events:none}
 .boot .reactor{position:relative;width:132px;height:132px}
 .boot .r{position:absolute;inset:0;border-radius:50%}
@@ -465,7 +465,7 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
 .boot .lines div:last-child{color:#7fffc0}
 @keyframes bootLine{to{opacity:1;transform:none}}
 .boot .bar{width:320px;height:3px;border-radius:3px;background:rgba(95,214,255,.12);overflow:hidden}
-.boot .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1d6f9a,#5fd6ff);box-shadow:0 0 12px #5fd6ff;animation:bootBar 2.05s ease forwards}
+.boot .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#1d6f9a,#5fd6ff);box-shadow:0 0 12px #5fd6ff;animation:bootBar .35s ease forwards}
 @keyframes bootBar{to{width:100%}}
 .boot-foot{font-size:9px;letter-spacing:.26em;color:rgba(95,214,255,.4)}
 
@@ -1148,7 +1148,7 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
   <!-- TODOS -->
   <section class="tab" id="tab-todos">
     <div class="panel a-todo">
-      <div class="phead"><div class="plabel"><b>T1</b> // NEUES TO-DO</div><div class="pmeta">Orange = hoch · Grün = mittel · Blau = niedrig</div></div>
+      <div class="phead"><div class="plabel"><b>T1</b> // NEUES TO-DO</div><div class="pmeta">Rot = hoch · Gold = mittel · Blau = niedrig</div></div>
       <div class="row"><input class="inp" id="todo-input" placeholder="To-Do eintippen — z. B. „Steuerunterlagen sortieren“ …" style="flex:1;min-width:180px">
         <select class="inp" id="todo-project" style="flex:0 0 140px" title="Projekt / Kategorie"><option value="">Ohne Projekt</option></select>
         <select class="inp" id="todo-scope" style="flex:0 0 110px" title="Zeitebene"><option value="heute">Heute</option><option value="woche">Diese Woche</option><option value="monat">Diesen Monat</option></select>
@@ -1166,11 +1166,11 @@ html.deko-ruht *, html.deko-ruht *::before, html.deko-ruht *::after{
     <div class="panel" style="margin-top:14px">
       <div class="zone-head"><span class="zh-title">Offen · nach Priorität</span><span class="zh-hint">To-Do zwischen den Bereichen ziehen = Priorität ändern</span></div>
       <div class="prio-bereich">
-        <div class="pb-head"><span class="pb-dot-l" style="background:var(--orange)"></span>Hoch</div>
+        <div class="pb-head"><span class="pb-dot-l" style="background:var(--red)"></span>Hoch</div>
         <div id="todo-hoch" class="drop-zone prio-drop" data-prio="orange"></div>
       </div>
       <div class="prio-bereich">
-        <div class="pb-head"><span class="pb-dot-l" style="background:var(--green)"></span>Mittel</div>
+        <div class="pb-head"><span class="pb-dot-l" style="background:var(--gold)"></span>Mittel</div>
         <div id="todo-mittel" class="drop-zone prio-drop" data-prio="green"></div>
       </div>
       <div class="prio-bereich">
@@ -2971,13 +2971,15 @@ renderKennzahlen(); renderMeilensteine(); initScratch(); renderVision(); renderH
     (function add(){
       if(i<msgs.length && L){
         var d=document.createElement('div'); d.textContent=msgs[i++]; L.appendChild(d);
-        setTimeout(add, reduce?0:(230+Math.random()*150));
+        setTimeout(add, reduce?0:35);
       }
     })();
-    var total = reduce ? 250 : 2150;
+    /* Kurzer Moment statt langer Sequenz (08.09.2026): Finn nervte die
+       Warterei bei jedem Start. Boot ist jetzt fast sofort weg. */
+    var total = reduce ? 120 : 300;
     setTimeout(function(){
       box.classList.add('hide');
-      setTimeout(function(){ box.style.display='none'; }, 680);
+      setTimeout(function(){ box.style.display='none'; }, 220);
       runHomeCount();
     }, total);
   })();
